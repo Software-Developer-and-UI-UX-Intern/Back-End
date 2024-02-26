@@ -1,5 +1,13 @@
-email: adminuser@gmail.com
-password: adminuser
-kendala : 
-1. machine tidak mau start dan selalu stop di fly.io
-2. terdapat eror di unit testing
+# Basic express server
+
+Dockerized express server for testing deployments
+
+## To run locally
+
+    $ docker build -t basic-express-api .
+    $ docker run -p 3000:3000 basic-express-api
+
+## Without docker
+
+    $ npm i
+    $ npm start
