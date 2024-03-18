@@ -3,9 +3,11 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
+const cors = require('cors'); // Import the cors middleware
 require('dotenv').config();
 
 const app = express();
+app.use(cors()); // Enable CORS for all routes
 app.use(bodyParser.json());
 
 const pool = new Pool({
@@ -28,7 +30,7 @@ async function checkUsersTable() {
 
 // Register route
 app.post('/register', async (req, res) => {
-  const { email, password, name, phone_number, address, gender } = req.body;
+  const { email, password, fullName, phoneNumber, domisili, jenisKelamin } = req.body;
 
   try {
     // Check if email is taken
@@ -42,8 +44,8 @@ app.post('/register', async (req, res) => {
 
     // Store user details in the database
     await pool.query(
-      'INSERT INTO users (email, password, name, phone_number, address, gender) VALUES ($1, $2, $3, $4, $5, $6)',
-      [email, hashedPassword, name, phone_number, address, gender]
+      'INSERT INTO users (email, password, full_name, phone_number, domisili, jenis_kelamin) VALUES ($1, $2, $3, $4, $5, $6)',
+      [email, hashedPassword, fullName, phoneNumber, domisili, jenisKelamin]
     );
 
     res.status(201).json({ message: 'User registered successfully' });
@@ -93,6 +95,16 @@ app.get('/', async (req, res) => {
     res.json(users.rows);
   } catch (error) {
     console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/hotels', async (req, res) => {
+  try {
+    const hotels = await pool.query('SELECT * FROM hotel');
+    res.json(hotels.rows);
+  } catch (error) {
+    console.error('Error fetching hotels:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
