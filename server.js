@@ -251,7 +251,84 @@ app.delete('/addresses/:nama/:addressId', async (req, res) => {
   }
 });
 
-// Other routes from the second code snippet...
+// Insert data into the 'wisata' table
+app.post('/wisata', async (req, res) => {
+  const { nama, gambar_url1, gambar_url2, gambar_url3, tiket_masuk, parkir, description, domisili, Alamat_gbr, Alamat_url } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO wisata (nama, gambar_url1, gambar_url2, gambar_url3, tiket_masuk, parkir, description, domisili, Alamat_gbr, Alamat_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+      [nama, gambar_url1, gambar_url2, gambar_url3, tiket_masuk, parkir, description, domisili, Alamat_gbr, Alamat_url]
+    );
+    res.status(201).json({ message: 'Data inserted into Wisata table successfully' });
+  } catch (error) {
+    console.error('Error inserting data into Wisata table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update data in the 'wisata' table
+app.put('/wisata/:nama', async (req, res) => {
+  const { nama } = req.params;
+  const { gambar_url1, gambar_url2, gambar_url3, tiket_masuk, parkir, description, domisili, Alamat_gbr, Alamat_url } = req.body;
+  try {
+    const updateQuery = `
+      UPDATE wisata
+      SET gambar_url1 = $1, gambar_url2 = $2, gambar_url3 = $3, tiket_masuk = $4, parkir = $5, description = $6, domisili = $7, Alamat_gbr = $8, Alamat_url = $9
+      WHERE nama = $10
+    `;
+    await pool.query(updateQuery, [gambar_url1, gambar_url2, gambar_url3, tiket_masuk, parkir, description, domisili, Alamat_gbr, Alamat_url, nama]);
+    res.json({ message: 'Data in Wisata table updated successfully' });
+  } catch (error) {
+    console.error('Error updating data in Wisata table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Delete data from the 'wisata' table
+app.delete('/wisata/:nama', async (req, res) => {
+  const { nama } = req.params;
+  try {
+    // Check if the data exists
+    const dataExists = await pool.query('SELECT * FROM wisata WHERE nama = $1', [nama]);
+    if (dataExists.rows.length === 0) {
+      return res.status(404).json({ error: 'Data not found in Wisata table' });
+    }
+
+    // Delete the data
+    await pool.query('DELETE FROM wisata WHERE nama = $1', [nama]);
+    res.json({ message: 'Data deleted from Wisata table successfully' });
+  } catch (error) {
+    console.error('Error deleting data from Wisata table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get all data from the 'wisata' table
+app.get('/wisata', async (req, res) => {
+  try {
+    const data = await pool.query('SELECT * FROM wisata');
+    res.json(data.rows);
+  } catch (error) {
+    console.error('Error fetching data from Wisata table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get data from the 'wisata' table by name
+app.get('/wisata/:nama', async (req, res) => {
+  const { nama } = req.params;
+  try {
+    const data = await pool.query('SELECT * FROM wisata WHERE nama = $1', [nama]);
+    if (data.rows.length === 0) {
+      return res.status(404).json({ error: 'Data not found in Wisata table' });
+    }
+    res.json(data.rows[0]);
+  } catch (error) {
+    console.error('Error fetching data from Wisata table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 
 // Route to list users
 app.get('/', async (req, res) => {
