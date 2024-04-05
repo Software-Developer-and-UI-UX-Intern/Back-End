@@ -265,6 +265,19 @@ app.post('/wisata', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+app.post('/wisatarecomend', async (req, res) => {
+  const { nama, domisili } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO wisata_recomend (nama, domisili) VALUES ($1, $2)',
+      [nama, domisili]
+    );
+    res.status(201).json({ message: 'Data inserted into Wisata table successfully' });
+  } catch (error) {
+    console.error('Error inserting data into Wisata table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Update data in the 'wisata' table
 app.put('/wisata/:nama', async (req, res) => {
@@ -302,6 +315,23 @@ app.delete('/wisata/:nama', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+app.delete('/wisatarecomend/:nama', async (req, res) => {
+  const { nama } = req.params;
+  try {
+    // Check if the data exists
+    const dataExists = await pool.query('SELECT * FROM wisata_recomend WHERE nama = $1', [nama]);
+    if (dataExists.rows.length === 0) {
+      return res.status(404).json({ error: 'Data not found in Wisata table' });
+    }
+
+    // Delete the data
+    await pool.query('DELETE FROM wisata WHERE nama = $1', [nama]);
+    res.json({ message: 'Data deleted from Wisata table successfully' });
+  } catch (error) {
+    console.error('Error deleting data from Wisata table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 // Get all data from the 'wisata' table
 app.get('/wisata', async (req, res) => {
@@ -313,7 +343,15 @@ app.get('/wisata', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
-
+app.get('/wisatarecomend', async (req, res) => {
+  try {
+    const data = await pool.query('SELECT * FROM wisata_recomend');
+    res.json(data.rows);
+  } catch (error) {
+    console.error('Error fetching data from Wisata table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 // Get data from the 'wisata' table by name
 app.get('/wisata/:nama', async (req, res) => {
   const { nama } = req.params;
@@ -374,6 +412,80 @@ app.get('/recommendationwisata', async (req, res) => {
     res.json(hotels.rows);
   } catch (error) {
     console.error('Error fetching hotels:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/restoran', async (req, res) => {
+  const { nama, gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, makanan, minuman, location } = req.body;
+  try {
+    await pool.query(
+      'INSERT INTO restoran (nama, gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, makanan, minuman, location) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)',
+      [nama, gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, makanan, minuman, location]
+    );
+    res.status(201).json({ message: 'Data inserted into Restoran table successfully' });
+  } catch (error) {
+    console.error('Error inserting data into Restoran table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/restoran', async (req, res) => {
+  try {
+    const data = await pool.query('SELECT * FROM restoran ORDER BY location');
+    res.json(data.rows);
+  } catch (error) {
+    console.error('Error fetching data from Restoran table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get data from the 'restoran' table by name
+app.get('/restoran/:nama', async (req, res) => {
+  const { nama } = req.params;
+  try {
+    const data = await pool.query('SELECT * FROM restoran WHERE nama = $1', [nama]);
+    if (data.rows.length === 0) {
+      return res.status(404).json({ error: 'Data not found in Restoran table' });
+    }
+    res.json(data.rows[0]);
+  } catch (error) {
+    console.error('Error fetching data from Restoran table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.put('/restoran/:nama', async (req, res) => {
+  const { nama } = req.params;
+  const { gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, location } = req.body;
+  try {
+    const updateQuery = `
+      UPDATE restoran
+      SET gambar_url1 = $1, gambar_url2 = $2, gambar_url3 = $3, harga = $4, telfon = $5, description = $6, domisili = $7, alamat_gbr = $8, alamat_url = $9, link_menu = $10, location = $11
+      WHERE nama = $12
+    `;
+    await pool.query(updateQuery, [gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, location, nama]);
+    res.json({ message: 'Data in Restoran table updated successfully' });
+  } catch (error) {
+    console.error('Error updating data in Restoran table:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/restoran/:nama', async (req, res) => {
+  const { nama } = req.params;
+  try {
+    // Check if the data exists
+    const dataExists = await pool.query('SELECT * FROM restoran WHERE nama = $1', [nama]);
+    if (dataExists.rows.length === 0) {
+      return res.status(404).json({ error: 'Data not found in Restoran table' });
+    }
+
+    // Delete the data
+    await pool.query('DELETE FROM restoran WHERE nama = $1', [nama]);
+    res.json({ message: 'Data deleted from Restoran table successfully' });
+  } catch (error) {
+    console.error('Error deleting data from Restoran table:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
