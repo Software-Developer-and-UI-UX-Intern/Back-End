@@ -417,11 +417,11 @@ app.get('/recommendationwisata', async (req, res) => {
 });
 
 app.post('/restoran', async (req, res) => {
-  const { nama, gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, makanan, minuman, location } = req.body;
+  const { nama, gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, link_menu, makanan, minuman, location, halal } = req.body;
   try {
     await pool.query(
-      'INSERT INTO restoran (nama, gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, makanan, minuman, location) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)',
-      [nama, gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, makanan, minuman, location]
+      'INSERT INTO restoran (nama, gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, link_menu, makanan, minuman, location, halal) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)',
+      [nama, gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, link_menu, makanan, minuman, location, halal]
     );
     res.status(201).json({ message: 'Data inserted into Restoran table successfully' });
   } catch (error) {
@@ -457,14 +457,22 @@ app.get('/restoran/:nama', async (req, res) => {
 
 app.put('/restoran/:nama', async (req, res) => {
   const { nama } = req.params;
-  const { gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, location } = req.body;
+  const { gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, link_menu, location, makanan, minuman, halal } = req.body;
+  
   try {
+    // Check if a restaurant with the provided name exists
+    const restaurantExists = await pool.query('SELECT * FROM restoran WHERE nama = $1', [nama]);
+    if (restaurantExists.rows.length === 0) {
+      return res.status(404).json({ error: 'Restaurant not found' });
+    }
+
+    // Perform the update if the restaurant exists
     const updateQuery = `
       UPDATE restoran
-      SET gambar_url1 = $1, gambar_url2 = $2, gambar_url3 = $3, harga = $4, telfon = $5, description = $6, domisili = $7, alamat_gbr = $8, alamat_url = $9, link_menu = $10, location = $11
-      WHERE nama = $12
+      SET gambar_url1 = $1, gambar_url2 = $2, gambar_url3 = $3, harga = $4, telfon = $5, description = $6, domisili = $7, alamat_gbr = $8, link_menu = $9, location = $10, makanan = $11, minuman = $12, halal = $13
+      WHERE nama = $14
     `;
-    await pool.query(updateQuery, [gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, alamat_url, link_menu, location, nama]);
+    await pool.query(updateQuery, [gambar_url1, gambar_url2, gambar_url3, harga, telfon, description, domisili, alamat_gbr, link_menu, location, makanan, minuman, halal, nama]);
     res.json({ message: 'Data in Restoran table updated successfully' });
   } catch (error) {
     console.error('Error updating data in Restoran table:', error);
